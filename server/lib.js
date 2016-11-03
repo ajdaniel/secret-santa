@@ -4,7 +4,7 @@ var nodemailer = require('nodemailer');
 var winston = require('winston');
 
 // Winston use a file
-winston.add(winston.transports.File, { filename: 'secretsanta/santa.log' });
+winston.add(winston.transports.File, { filename: 'santa.log' });
 var transporter = nodemailer.createTransport(process.env.SS_SMTP);
 var userData = [], fileName = 'data/santa_users.json', isMatching = false, updateMails = {};
 
