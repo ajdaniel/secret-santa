@@ -1,0 +1,151 @@
+<md-toolbar>
+    <div class="md-toolbar-tools">
+        <span flex></span>
+        <h2>
+            <img src="img/logo.png" class="logo"></img>
+        </h2>
+        <span flex></span>
+        <a ng-cloak ng-if="!$ctrl.gettingProfile && !$ctrl.profile" href="/api/login" class="md-button md-raised fb-login"
+            aria-label="Log In">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 216 216" class="fb-icon">
+                <path fill="white" d="
+          M204.1 0H11.9C5.3 0 0 5.3 0 11.9v192.2c0 6.6 5.3 11.9 11.9
+          11.9h103.5v-83.6H87.2V99.8h28.1v-24c0-27.9 17-43.1 41.9-43.1
+          11.9 0 22.2.9 25.2 1.3v29.2h-17.3c-13.5 0-16.2 6.4-16.2
+          15.9v20.8h32.3l-4.2 32.6h-28V216h55c6.6 0 11.9-5.3
+          11.9-11.9V11.9C216 5.3 210.7 0 204.1 0z"></path>
+            </svg>
+            Log In
+        </a>
+        <a ng-cloak ng-if="!$ctrl.gettingProfile && $ctrl.profile" href="/api/logout" class="md-button md-raised fb-login"
+            aria-label="Log Out">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 216 216" class="fb-icon">
+                <path fill="white" d="
+          M204.1 0H11.9C5.3 0 0 5.3 0 11.9v192.2c0 6.6 5.3 11.9 11.9
+          11.9h103.5v-83.6H87.2V99.8h28.1v-24c0-27.9 17-43.1 41.9-43.1
+          11.9 0 22.2.9 25.2 1.3v29.2h-17.3c-13.5 0-16.2 6.4-16.2
+          15.9v20.8h32.3l-4.2 32.6h-28V216h55c6.6 0 11.9-5.3
+          11.9-11.9V11.9C216 5.3 210.7 0 204.1 0z"></path>
+            </svg>
+            Log Out
+        </a>
+    </div>
+</md-toolbar>
+
+<md-content class="md-padding">
+    <div ng-if="!$ctrl.profile" class="logged-out">
+        <p>Welcome to Secret Santa! The best way to get awesome presents this Christmas!</p>
+        <div>
+            <img src="img/secret-santa-large.png"></img>
+        </div>
+        <p>You are not logged in, please <a href="/api/login">login with facebook</a>.</p>
+    </div>
+
+    <md-tabs ng-cloak ng-if="$ctrl.profile" md-dynamic-height md-border-bottom>
+        <md-tab label="My Profile">
+            <md-content class="md-padding">
+                <h2><img ng-src="{{$ctrl.profile.photo}}" />{{$ctrl.profile.displayName}}</h2>
+
+                <form ng-show="$ctrl.editingEmail" name="emailForm" ng-submit="$ctrl.updateEmail()">
+                    <md-input-container>
+                        <label>New Email</label>
+                        <input ng-model="$ctrl.newEmail" md-maxlength="100" type="email" name="email" md-select-on-focus required />
+                        <div ng-messages="emailForm.email.$error">
+                            <div ng-message-exp="['required', 'email']">
+                                Your email must be less than 100 characters long and look like an e-mail address.
+                            </div>
+                        </div>
+                    </md-input-container>
+                    <input ng-disabled="!emailForm.$valid || $ctrl.submittingPreferences" type="submit" class="md-button md-primary md-raised"></input>
+                    <md-progress-circular md-mode="indeterminate" ng-show="$ctrl.submittingPreferences" class="md-accent md-hue-2" md-diameter="24"></md-progress-circular>
+                    <md-button type="reset" ng-click="$ctrl.cancelEmailUpdate()" ng-disabled="$ctrl.submittingPreferences" class="md-button md-secondary md-raised">cancel</md-button>
+                </form>
+
+                <p class="email-form" ng-show="!$ctrl.editingEmail">
+                    <span>Email: </span>
+                    <strong>{{$ctrl.profile.email}}</strong>
+                    <md-button ng-click="$ctrl.editEmail()" class="md-icon-button" aria-label="Edit">
+                        <md-icon>mode_edit</md-icon>
+                    </md-button>
+                </p>
+
+                <h3>My Preferences</h3>
+
+                <form ng-submit="$ctrl.submitPreferences()" name="prefForm">
+                    <md-input-container class="md-block">
+                        <label>Things I want</label>
+                        <md-icon>mood</md-icon>
+                        <textarea required name="liks" ng-model="$ctrl.profile.preferences.likes" md-minlength="20" 
+                            md-maxlength="150" rows="3" md-select-on-focus></textarea>
+                        <div ng-messages="prefForm.likes.$error" role="alert">
+                            <div ng-message="required">This is required. You have to give santa a clue</div>
+                            <div ng-message="md-minlength">Please give more details</div>
+                            <div ng-message="md-maxlength">That's too much information</div>
+                        </div>
+                    </md-input-container>
+
+                    <md-input-container class="md-block">
+                        <label>Things I don't want</label>
+                        <md-icon>mood_bad</md-icon>
+                        <textarea required name="dislikes" ng-model="$ctrl.profile.preferences.dislikes" md-minlength="20" 
+                            md-maxlength="150" rows="3" md-select-on-focus></textarea>
+                        <div ng-messages="prefForm.dislikes.$error" role="alert">
+                            <div ng-message="required">This is required. You can't want everything</div>
+                            <div ng-message="md-minlength">Please give more details</div>
+                            <div ng-message="md-maxlength">That's too much information</div>
+                        </div>
+                    </md-input-container>
+
+                    <md-input-container class="md-block">
+                        <label>Amazon Wishlist URL</label>
+                        <md-icon>list</md-icon>
+                        <input required name="wishlist" ng-model="$ctrl.profile.preferences.wishlist" type="url" md-select-on-focus>
+                        <div ng-messages="prefForm.wishlist.$error" role="alert">
+                            <div ng-message="url">Must be a valid url</div>
+                            <div ng-message="required">This is required. I know you have one</div>
+                        </div>
+                    </md-input-container>
+
+                    <input ng-disabled="!prefForm.$valid || $ctrl.submittingPreferences" type="submit" class="md-button md-primary md-raised"></input>
+
+                    <md-progress-circular md-mode="indeterminate" ng-show="$ctrl.submittingPreferences" class="md-accent md-hue-2" md-diameter="24"></md-progress-circular>
+
+                </form>
+            </md-content>
+        </md-tab>
+        <md-tab label="My Match">
+            <md-content class="md-padding">
+
+                <p ng-if="!$ctrl.profile.match">You have not been matched with somebody yet! You will be notified when you have been matched. 
+                    In the meantime, you should update your profile.</p>
+
+                <div ng-if="$ctrl.profile.match">
+                    <p>You have been matched with</p>
+
+                    <h2><img ng-src="{{$ctrl.profile.match.photo}}" />{{$ctrl.profile.match.displayName}}</h2>
+
+                    <h3>They would like</h3>
+                    <p>{{$ctrl.profile.match.preferences.likes}}</p>
+
+                    <h3>They would not like</h3>
+                    <p>{{$ctrl.profile.match.preferences.dislikes}}</p>
+
+                    <h3>Wishlist url</h3>
+                    <p><a href="{{$ctrl.profile.match.preferences.wishlist}}" target="blank">{{$ctrl.match.profile.preferences.wishlist}}</a></p>
+                </div>
+            </md-content>
+        </md-tab>
+        <md-tab label="Admin" ng-if="$ctrl.profile.admin">
+            <md-content>
+                <md-button class="md-primary" ng-click="$ctrl.matchUsers()">Match users</md-button>
+                <md-button class="md-primary" ng-click="$ctrl.clearMatches()">Remove ALL matches</md-button>
+
+                <h3>List of users</h3>
+                <md-switch  ng-repeat="user in $ctrl.admin.users" ng-change="$ctrl.toggleAllowed(user)" 
+                            ng-model="user.isAllowed" aria-label="allowed: {{user.displayName}}">
+                    {{user.displayName}} ({{user.email}}) Match: [{{user.match}}]
+                </md-switch></li>
+            </md-content>
+        </md-tab>
+    </md-tabs>
+</md-content>

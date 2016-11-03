@@ -1,0 +1,70 @@
+md-toolbar {
+    background-image: url(img/redbg.png);
+}
+
+md-toolbar .md-toolbar-tools .md-button.md-raised.fb-login {
+    background-color: #4267b2;
+    color: white;
+    text-transform: capitalize;
+    padding: 0 15px;
+}
+
+.fb-login > svg, .fb-login > span {
+    vertical-align: middle;
+}
+
+md-toolbar .md-toolbar-tools .md-button.md-raised.fb-login > .fb-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+}
+
+md-tabs md-content h2 {
+    display: flex;
+    align-items: center;
+    font-size: 2em;
+    margin: 0.3em 0;
+}
+
+md-tabs md-content p.email-form {
+    display: flex;
+    align-items: center;
+}
+
+md-tabs md-content p.email-form span {
+    margin-right: 1em;
+}
+
+md-tabs md-content h2 img {
+    height: 1em;
+    width: 1em;
+    margin-right: 0.5em;
+}
+
+md-tabs md-content form {
+    margin: 40px 0;
+}
+
+md-toast {
+    position: fixed;
+}
+
+md-toast[md-theme="error"] .md-toast-content{
+    background-color: #662222;
+    color: white;
+}
+
+md-toolbar h2 img {
+    width: 300px;
+}
+
+@media (max-width: 959px) and (min-width: 0) and (orientation: portrait) {
+    md-toolbar h2 img {
+        width: 208px;
+    }
+}
+
+.logged-out {
+    text-align: center;
+}
+
