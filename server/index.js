@@ -10,16 +10,7 @@ app.use('/', express.static('public'));
 // APIs
 app.use('/api', secretsanta);
 
-// Run the HTTP and HTTPS servers
-var port = 80;
-
-if (process.env.HOMEWEBENV === 'development') {
-    console.log('running development');
-    port = 8080;
-}
-
-port = process.env.OPENSHIFT_NODEJS_PORT || port;
-
+var port = process.env.OPENSHIFT_NODEJS_PORT || '8080';
 var ipaddress = process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1";
 
 http.createServer(app).listen(port, ipaddress);
