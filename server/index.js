@@ -18,6 +18,10 @@ if (process.env.HOMEWEBENV === 'development') {
     port = 8080;
 }
 
-http.createServer(app).listen(port);
+port = process.env.OPENSHIFT_NODEJS_PORT || port;
+
+var ipaddress = process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1";
+
+http.createServer(app).listen(port, ipaddress);
 
 console.log('App started on port ' + port + ' at ' + (new Date()));
