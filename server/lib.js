@@ -85,15 +85,10 @@ function toggleUserAllowed(userId) {
 
 function setUserPrefs(id, prefs) {
 	var user = _.find(userData, { id: id });
-	winston.info('Updating user prefs for '+id, prefs);
+	winston.info({id:id, prefs:prefs}, 'Updating user prefs');
 	if (user) {
-		['likes', 'dislikes', 'wishlist'].forEach(function(pref) {
-			if (prefs[pref] && prefs[pref] !== user[pref]) {
-				user[pref] = prefs[pref];
-			}
-		});
+		user.preferences = _.merge(user.preferences, prefs);
 		user.preferences.lastUpdated = _.now();
-		
 		winston.info({ userData: user }, 'User updated preferences');
 		saveData();
 
@@ -249,8 +244,10 @@ function clearMatches() {
 }
 
 function saveData() {
+	winston.info('Saving data...')
 	fs.writeFile(fileName, JSON.stringify(userData), 'utf8', function (err) {
 		if (err) return console.error(err);
+		winston.info('Saving successful!');
 	});
 }
 
