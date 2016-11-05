@@ -76,6 +76,7 @@ app.get('/profile/me', function (req, res) {
 
 app.put('/profile/me/preferences', function (req, res) {
 	if (req.user) {
+		console.log('updating user prefs with body: ', req.body);
 		var msg = lib.setUserPrefs(req.user.id, req.body);
 		res.json(msg);
 	} else {
@@ -120,6 +121,8 @@ app.post('/admin/actions', function (req, res) {
 			res.json(lib.clearMatches());
 		} else if (req.body.action === 'toggleAllowed' && req.body.userId) {
 			res.json(lib.toggleUserAllowed(req.body.userId));
+		} else {
+			res.status(400).send('Invalid action');
 		}
 	} else {
 		res.json({ success: false, text: 'invalid access' });

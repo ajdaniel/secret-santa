@@ -4,6 +4,8 @@ var bodyParser = require('body-parser');
 var secretsanta = require('./santa.js');
 var app = express();
 
+app.use(bodyParser.json());
+
 // HTML Static pages
 app.use('/', express.static('public'));
 
