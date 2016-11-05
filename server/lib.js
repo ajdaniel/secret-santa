@@ -85,11 +85,12 @@ function toggleUserAllowed(userId) {
 
 function setUserPrefs(id, prefs) {
 	var user = _.find(userData, { id: id });
+	winston.info('Updating user prefs for '+id, prefs);
 	if (user) {
 		user.preferences = {
-			likes: prefs.likes,
-			dislikes: prefs.dislikes,
-			wishlist: prefs.wishlist,
+			likes: prefs.likes || user.preferences.likes,
+			dislikes: prefs.dislikes || user.preferences.dislikes,
+			wishlist: prefs.wishlist || user.preferences.wishlist,
 			lastUpdated: (new Date())
 		};
 		winston.info({ userData: user }, 'User updated preferences');
