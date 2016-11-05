@@ -87,12 +87,13 @@ function setUserPrefs(id, prefs) {
 	var user = _.find(userData, { id: id });
 	winston.info('Updating user prefs for '+id, prefs);
 	if (user) {
-		user.preferences = {
-			likes: prefs.likes || user.preferences.likes,
-			dislikes: prefs.dislikes || user.preferences.dislikes,
-			wishlist: prefs.wishlist || user.preferences.wishlist,
-			lastUpdated: (new Date())
-		};
+		['likes', 'dislikes', 'wishlist'].forEach(function(pref) {
+			if (prefs[pref] && prefs[pref] !== user[pref]) {
+				user[pref] = prefs[pref];
+			}
+		});
+		user.preferences.lastUpdated = _.now();
+		
 		winston.info({ userData: user }, 'User updated preferences');
 		saveData();
 
