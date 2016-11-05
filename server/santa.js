@@ -5,7 +5,7 @@ var fs = require('fs');
 var _ = require('lodash');
 var lib = require('./lib');
 
-var callback = 'http://santa-ajdaniel.rhcloud.com/api/login/return';
+var callback = 'http://santa.andrewdaniel.co.uk/api/login/return';
 
 // if this is running locally, switch the callback
 if (process.env.HOMEWEBENV === 'development') {
