@@ -76,7 +76,7 @@
                         <label>Things I want</label>
                         <md-icon>mood</md-icon>
                         <textarea required name="liks" ng-model="$ctrl.profile.preferences.likes" md-minlength="20" 
-                            md-maxlength="150" rows="3" md-select-on-focus></textarea>
+                            md-maxlength="500" rows="3" md-select-on-focus></textarea>
                         <div ng-messages="prefForm.likes.$error" role="alert">
                             <div ng-message="required">This is required. You have to give santa a clue</div>
                             <div ng-message="md-minlength">Please give more details</div>
@@ -88,7 +88,7 @@
                         <label>Things I don't want</label>
                         <md-icon>mood_bad</md-icon>
                         <textarea required name="dislikes" ng-model="$ctrl.profile.preferences.dislikes" md-minlength="20" 
-                            md-maxlength="150" rows="3" md-select-on-focus></textarea>
+                            md-maxlength="500" rows="3" md-select-on-focus></textarea>
                         <div ng-messages="prefForm.dislikes.$error" role="alert">
                             <div ng-message="required">This is required. You can't want everything</div>
                             <div ng-message="md-minlength">Please give more details</div>
