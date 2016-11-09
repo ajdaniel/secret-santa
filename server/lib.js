@@ -14,6 +14,7 @@ if (process.env.HOMEWEBENV === 'development') {
 
 function createNewUserIfNeeded(profile) {
 	if (_.findIndex(userData, {id: profile.id }) === -1) {
+		winston.info(profile, 'Creating new user');
 		var isAllowed = false;
 		// Apply defaults so nothing goes bang
 		_.defaults(profile, {
@@ -73,6 +74,7 @@ function getAllUsers() {
 }
 
 function toggleUserAllowed(userId) {
+	winston.info('Toggling user allowed for '+userId);
 	var user = getUserByID(userId);
 	if (user) {
 		user.allowed = !user.allowed;
@@ -122,6 +124,7 @@ function isEmail(text) {
 }
 
 function setUserEmail(id, email) {
+	winston.info('User '+id+' is changing email to '+email);
 	if (!isEmail(email)) {
 		return returnBody(false, 'Invalid email address');
 	}
@@ -164,10 +167,12 @@ function init() {
 
 function matchUsers() {
 	var success = false, iterations = 0, users, shuffleIts;
+	winston.info('Attempting to match users');
 
 	// iterative function, repeat until matches are matched
 	function attemptMatch() {
 		iterations++;
+		winston.info('Attempt number '+iterations);
 
 		// Get a subset of users and shuffle them
 		users = _.filter(userData, { allowed: true });
@@ -205,7 +210,7 @@ function matchUsers() {
 				if (iterations < 10) {
 					return attemptMatch();
 				} else {
-					return returnBody(false, 'Matching exceeded 10 attempts!');
+					return false;
 				}
 			} else {
 				// we succeeded
@@ -215,13 +220,15 @@ function matchUsers() {
 	}
 
 	// kick off the loop
-	var matchBody = attemptMatch();
-	if (!matchBody) {
+	var succeeded = attemptMatch();
+	winston.info('Attempt ' + (succeeded ? 'succeeded' : 'failed'));
+	if (!succeeded) {
 		// if we get this far, success
 		saveData();
 		// email everybody
 		users.forEach(function(user) {
 			var match = getUserByID(user.match);
+			winston.info('Attempting to email '+match.displayName);
 			var msg = 	'<h2>Congratulations! You have been matched!</h2>';
 			msg +=		'<p>You have been matched with <strong>'+match.displayName+'</strong></p>';
 			msg += 		'<p>Head over to <a href="http://home.andrewdaniel.co.uk/santa">the Secret Santa site</a>';
@@ -231,11 +238,12 @@ function matchUsers() {
 
 		return returnBody(true, 'Matching complete with '+shuffleIts+' shuffles and '+iterations+' iterations');
 	} else {
-		return matchBody;
+		return returnBody(false, 'Matching exceeded 10 attempts!');;
 	}
 }
 
 function clearMatches() {
+	winston.info('Attempting to clear matches');
 	for(var i = 0; i < userData.length; i++) {
 		delete userData[i].match;
 	}
@@ -256,6 +264,7 @@ function isAdminUser(user) {
 }
 
 function returnBody(success, msg) {
+	winston.info('Sending return message'+msg);
 	return {
 		success: success,
 		message: msg
