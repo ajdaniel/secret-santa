@@ -2,11 +2,14 @@ var fs = require('fs');
 var _ = require('lodash');
 var nodemailer = require('nodemailer');
 var winston = require('winston');
+var database = require('./db');
 
 // Winston use a file
 winston.add(winston.transports.File, { filename: 'santa.log' });
 var transporter = nodemailer.createTransport(process.env.SS_SMTP);
 var userData = [], fileName = 'data/santa_users.json', isMatching = false, updateMails = {};
+
+
 
 if (process.env.HOMEWEBENV === 'development') {
 	fileName = 'data/santa_users_dev.json';
@@ -177,20 +180,25 @@ function matchUsers() {
 		// Get a subset of users and shuffle them
 		users = _.filter(userData, { allowed: true });
 
+		winston.log(users.length + ' users to match up');
+
 		// _.shuffle is deterministic, so randomly iterate
 		shuffleIts = _.random(12, 300);
 		var shuffledUsers;
 		for (var i = 0; i < shuffleIts; i++) {
+
+			// get a copy of the users in a shuffled order
 			shuffledUsers = _.shuffle(users);	
 		}
 
-		// For each USER
+		// Loop through each eligible user
 		for (var x = 0; x < users.length; x++) {
 			user = users[x];
-			var successfulMatch = false;
+			var userIsMatched = false;
 
+			// loop through the shuffled user list
 			for (var i = 0; i < shuffledUsers.length; i++) {
-				// Pluck a shuffled user from the array so they aren't used again
+				// pull the first shuffled user from the list so they're not used in future
 				var shuffledUser = shuffledUsers.shift();
 
 				// Is this match a good match?
@@ -198,37 +206,41 @@ function matchUsers() {
 					shuffledUser.lastName.toLowerCase() !== user.lastName.toLowerCase()) {
 					// successful match, so move onto the next user in the array
 					user.match = shuffledUser.id;
-					successfulMatch = true;
+					userIsMatched = true;
+					// break from the shuffled user loop
 					break;
 				}
-				// else, put the shuffled user at the back and try again
+				// bad match, so put the shuffled user back in the array
 				shuffledUsers.push(shuffledUser);
 			}
 
-			if (!successfulMatch) {
-				// if we got here, we couldn't match two users, so try again
+			if (!userIsMatched) {
+				
+				// if we got here, we couldn't match this user successfully, so try again
 				if (iterations < 10) {
 					return attemptMatch();
 				} else {
+					// bomb out, too many attempts
+					winston.log(shuffledUsers,'Couldnt match '+user.displayName+' with anyone!');
 					return false;
 				}
-			} else {
-				// we succeeded
-				return true;
 			}
 		}
+
+		// if we got this far, then all users were matched!
+		return true;
 	}
 
 	// kick off the loop
 	var succeeded = attemptMatch();
 	winston.info('Attempt ' + (succeeded ? 'succeeded' : 'failed'));
-	if (!succeeded) {
+	if (succeeded) {
 		// if we get this far, success
 		saveData();
 		// email everybody
 		users.forEach(function(user) {
 			var match = getUserByID(user.match);
-			winston.info('Attempting to email '+match.displayName);
+			winston.info('Attempting to email '+match);
 			var msg = 	'<h2>Congratulations! You have been matched!</h2>';
 			msg +=		'<p>You have been matched with <strong>'+match.displayName+'</strong></p>';
 			msg += 		'<p>Head over to <a href="http://home.andrewdaniel.co.uk/santa">the Secret Santa site</a>';
@@ -264,7 +276,7 @@ function isAdminUser(user) {
 }
 
 function returnBody(success, msg) {
-	winston.info('Sending return message'+msg);
+	winston.info('Sending return message '+msg);
 	return {
 		success: success,
 		message: msg

@@ -17,6 +17,7 @@ app.use(expressWinston.logger({
         new winston.transports.File({ filename: 'santa.log' })
     ],
     msg: "HTTP {{req.method}} {{req.url}}",
+    meta: false,
     expressFormat: true
 }));
 
