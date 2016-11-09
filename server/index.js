@@ -14,7 +14,7 @@ app.use(expressWinston.logger({
         new winston.transports.Console({
             json: true
         }),
-        winston.transports.File, { filename: 'santa.log' }
+        new winston.transports.File({ filename: 'santa.log' })
     ],
     msg: "HTTP {{req.method}} {{req.url}}",
     expressFormat: true
