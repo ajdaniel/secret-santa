@@ -4,6 +4,7 @@ var Strategy = require('passport-facebook').Strategy;
 var fs = require('fs');
 var _ = require('lodash');
 var lib = require('./lib');
+var path = require('path');
 
 var callback = 'http://santa.andrewdaniel.co.uk/api/login/return';
 
@@ -126,6 +127,15 @@ app.post('/admin/actions', function (req, res) {
 		}
 	} else {
 		res.json({ success: false, text: 'invalid access' });
+	}
+});
+
+app.get('/admin/log', function (req, res) {
+	if (lib.isAdminUser(req.user)) {
+		res.sendFile(path.join(__dirname, '../santa.log'));
+		
+	} else {
+		res.sendStatus(401);
 	}
 });
 

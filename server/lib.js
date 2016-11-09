@@ -2,14 +2,11 @@ var fs = require('fs');
 var _ = require('lodash');
 var nodemailer = require('nodemailer');
 var winston = require('winston');
-var database = require('./db');
 
 // Winston use a file
 winston.add(winston.transports.File, { filename: 'santa.log' });
 var transporter = nodemailer.createTransport(process.env.SS_SMTP);
 var userData = [], fileName = 'data/santa_users.json', isMatching = false, updateMails = {};
-
-
 
 if (process.env.HOMEWEBENV === 'development') {
 	fileName = 'data/santa_users_dev.json';
