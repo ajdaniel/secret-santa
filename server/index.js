@@ -2,9 +2,24 @@ var express = require('express');
 var http = require('http');
 var bodyParser = require('body-parser');
 var secretsanta = require('./santa.js');
-var app = express();
 
+var winston = require('winston');
+var expressWinston = require('express-winston');
+
+var app = express();
 app.use(bodyParser.json());
+
+app.use(expressWinston.logger({
+    transports: [
+        new winston.transports.Console({
+            json: true
+        }),
+        winston.transports.File, { filename: 'santa.log' }
+    ],
+    msg: "HTTP {{req.method}} {{req.url}}",
+    expressFormat: true
+}));
+
 
 // HTML Static pages
 app.use('/', express.static('public'));
