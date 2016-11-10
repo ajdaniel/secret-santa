@@ -4,6 +4,8 @@ var Strategy = require('passport-facebook').Strategy;
 var fs = require('fs');
 var _ = require('lodash');
 var lib = require('./lib');
+var path = require('path');
+var logger = require('./logger');
 
 var callback = 'http://santa.andrewdaniel.co.uk/api/login/return';
 
@@ -76,7 +78,6 @@ app.get('/profile/me', function (req, res) {
 
 app.put('/profile/me/preferences', function (req, res) {
 	if (req.user) {
-		console.log('updating user prefs with body: ', req.body);
 		var msg = lib.setUserPrefs(req.user.id, req.body);
 		res.json(msg);
 	} else {
@@ -129,6 +130,13 @@ app.post('/admin/actions', function (req, res) {
 	}
 });
 
-lib.init();
+app.get('/admin/log', function (req, res) {
+	if (lib.isAdminUser(req.user)) {
+		res.sendFile(logger.__filePath);
+		
+	} else {
+		res.sendStatus(401);
+	}
+});
 
 module.exports = app;
