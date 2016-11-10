@@ -1,19 +1,15 @@
 var fs = require('fs');
 var _ = require('lodash');
 var nodemailer = require('nodemailer');
-var winston = require('winston');
+var logger = require('./logger');
+var db = require('./db');
 
-// Winston use a file
-winston.add(winston.transports.File, { filename: 'santa.log' });
 var transporter = nodemailer.createTransport(process.env.SS_SMTP);
-var userData = [], fileName = 'data/santa_users.json', isMatching = false, updateMails = {};
-
-if (process.env.HOMEWEBENV === 'development') {
-	fileName = 'data/santa_users_dev.json';
-}
+var isMatching = false, updateMails = {};
 
 function createNewUserIfNeeded(profile) {
-	if (_.findIndex(userData, {id: profile.id }) === -1) {
+	if (_.findIndex(db.userData, {id: profile.id }) === -1) {
+		logger.info(profile, 'Creating new user');
 		var isAllowed = false;
 		// Apply defaults so nothing goes bang
 		_.defaults(profile, {
@@ -38,45 +34,47 @@ function createNewUserIfNeeded(profile) {
 			preferences: [],
 			allowed: isAllowed
 		};
-		winston.info({ user: user }, 'New user has been created');
-		userData.push(user);
+		logger.info({ user: user }, 'New user has been created');
+		db.userData.push(user);
 
 		// save the file too
-		saveData();
+		db.saveData();
 	} else {
 		// user exists
-		var existingUser = _.find(userData, {id:profile.id});
+		var existingUser = _.find(db.userData, {id:profile.id});
 
 		// update their profile picture if needed
-		if (existingUser.photo !== profile.photos[0].value) {
+		if (!existingUser.photo || existingUser.photo !== profile.photos[0].value) {
 			existingUser.photo = profile.photos[0].value;
-			saveData();
-			winston.info({user:existingUser}, 'User photo updated');
+			db.saveData();
+			logger.info({user:existingUser}, 'User photo updated');
 		}
 	}
 }
 
 function getUserByID(id) {
-	return _.find(userData, { id: id });
+	return _.find(db.userData, { id: id });
 }
 
 function getAllUsers() {
-	return userData.map(function (user) {
+	return db.userData.map(function (user) {
 		return {
 			id: user.id,
 			displayName: user.displayName,
 			email: user.email,
 			isAllowed: user.allowed,
-			match: user.match
+			match: user.match,
+			preferences: user.preferences
 		};
 	});
 }
 
 function toggleUserAllowed(userId) {
+	logger.info('Toggling user allowed for '+userId);
 	var user = getUserByID(userId);
 	if (user) {
 		user.allowed = !user.allowed;
-		saveData();
+		db.saveData();
 		return returnBody(true, user.displayName + ' has been updated');
 	} else {
 		return returnBody(false, 'Could not find user in database');
@@ -84,25 +82,29 @@ function toggleUserAllowed(userId) {
 }
 
 function setUserPrefs(id, prefs) {
-	var user = _.find(userData, { id: id });
-	winston.info({id:id, prefs:prefs}, 'Updating user prefs');
+	var user = _.find(db.userData, { id: id });
+	logger.info({id:id, prefs:prefs}, 'Updating user prefs');
 	if (user) {
-		user.preferences = _.merge(user.preferences, prefs);
-		user.preferences.lastUpdated = _.now();
-		winston.info({ userData: user }, 'User updated preferences');
-		saveData();
+		user.preferences = {
+			likes: prefs.likes,
+			dislikes: prefs.dislikes,
+			wishlist: prefs.wishlist,
+			lastUpdated: _.now()
+		};
+		logger.info({userData: user}, 'User updated preferences');
+		db.saveData();
 
 		// if the user has a santa, tell them!
-		if (_.findIndex(userData, {match : user.id}) > -1) {
+		if (_.findIndex(db.userData, {match : user.id}) > -1) {
 			// Tell the santa!
 			if (!updateMails[user.id]) {
-				winston.info('Telling santa for '+user.displayName+' they updated their prefs');
+				logger.info('Telling santa for '+user.displayName+' they updated their prefs');
 				updateMails[user.id] = function () {
-					var santa = _.find(userData, {match:user.id});
+					var santa = _.find(db.userData, {match:user.id});
 					if (santa) {
 						sendMail(santa.email, 'Your match updated their profile!',
 							'<h2>Your match updated their preferences!</h2> \
-							<p>Go visit <a href="http://home.andrewdaniel.co.uk/santa">the Secret Santa site</a> to see what they wrote</p>');
+							<p>Go visit <a href="http://santa.andrewdaniel.co.uk">the Secret Santa site</a> to see what they wrote</p>');
 						delete updateMails[user.id];
 					}
 				};
@@ -112,8 +114,9 @@ function setUserPrefs(id, prefs) {
 		}
 
 		return returnBody(true, 'Preferences successfully updated');
+	} else {
+		return returnBody(false, 'User doesn\'t exist');
 	}
-	return returnBody(false, 'User doesn\'t exist');
 }
 
 function isEmail(text) {
@@ -122,70 +125,54 @@ function isEmail(text) {
 }
 
 function setUserEmail(id, email) {
+	logger.info('User '+id+' is changing email to '+email);
 	if (!isEmail(email)) {
 		return returnBody(false, 'Invalid email address');
 	}
 
-	var userIndex = _.findIndex(userData, { id: user.id });
+	var userIndex = _.findIndex(db.userData, { id: user.id });
 
 	if (userIndex > -1) {
-		userData[userIndex].email = email;
-		winston.info({ displayName: userData[userIndex].displayName, email: userData[userIndex].email }, 'User email has been updated');
-		saveData();
+		db.userData[userIndex].email = email;
+		logger.info({ displayName: db.userData[userIndex].displayName, email: db.userData[userIndex].email }, 'User email has been updated');
+		db.saveData();
 		return returnBody(true, 'Email successfully updated');
 	} else {
 		return returnBody(false, 'User doesn\'t exist');
 	}
 }
 
-function init() {
-	winston.info('Initializing');
-	fs.readFile(fileName, { encoding: 'utf8' }, function (err, data) {
-		// if the file didn't exist'
-		if (err && err.code === 'ENOENT') {
-			fs.writeFile(fileName, '[]', function (err) {
-				if (err) {
-					winston.info(err);
-				} else {
-					winston.info('santa: created user json file');
-				}
-			});
-		} else {
-			try {
-				userData = JSON.parse(data);
-				winston.info({userData:userData}, 'Loaded up user data from disk');
-			} catch (ex) {
-				winston.info(ex);
-			}
-		}
-	});
-
-}
-
 function matchUsers() {
 	var success = false, iterations = 0, users, shuffleIts;
+	logger.info('Attempting to match users');
 
 	// iterative function, repeat until matches are matched
 	function attemptMatch() {
 		iterations++;
+		logger.info('Attempt number '+iterations);
 
 		// Get a subset of users and shuffle them
-		users = _.filter(userData, { allowed: true });
+		users = _.filter(db.userData, { allowed: true });
+
+		logger.log(users.length + ' users to match up');
 
 		// _.shuffle is deterministic, so randomly iterate
 		shuffleIts = _.random(12, 300);
 		var shuffledUsers;
 		for (var i = 0; i < shuffleIts; i++) {
+
+			// get a copy of the users in a shuffled order
 			shuffledUsers = _.shuffle(users);	
 		}
 
-		// For each USER
+		// Loop through each eligible user
 		for (var x = 0; x < users.length; x++) {
 			user = users[x];
-			var successfulMatch = false;
+			var userIsMatched = false;
 
+			// loop through the shuffled user list
 			for (var i = 0; i < shuffledUsers.length; i++) {
-				// Pluck a shuffled user from the array so they aren't used again
+				// pull the first shuffled user from the list so they're not used in future
 				var shuffledUser = shuffledUsers.shift();
 
 				// Is this match a good match?
@@ -193,69 +180,69 @@ function matchUsers() {
 					shuffledUser.lastName.toLowerCase() !== user.lastName.toLowerCase()) {
 					// successful match, so move onto the next user in the array
 					user.match = shuffledUser.id;
-					successfulMatch = true;
+					userIsMatched = true;
+					// break from the shuffled user loop
 					break;
 				}
-				// else, put the shuffled user at the back and try again
+				// bad match, so put the shuffled user back in the array
 				shuffledUsers.push(shuffledUser);
 			}
 
-			if (!successfulMatch) {
-				// if we got here, we couldn't match two users, so try again
+			if (!userIsMatched) {
+				
+				// if we got here, we couldn't match this user successfully, so try again
 				if (iterations < 10) {
 					return attemptMatch();
 				} else {
-					return returnBody(false, 'Matching exceeded 10 attempts!');
+					// bomb out, too many attempts
+					logger.log(shuffledUsers,'Couldnt match '+user.displayName+' with anyone!');
+					return false;
 				}
-			} else {
-				// we succeeded
-				return true;
 			}
 		}
+
+		// if we got this far, then all users were matched!
+		return true;
 	}
 
 	// kick off the loop
-	var matchBody = attemptMatch();
-	if (!matchBody) {
+	var succeeded = attemptMatch();
+	logger.info('Attempt ' + (succeeded ? 'succeeded' : 'failed'));
+	if (succeeded) {
 		// if we get this far, success
-		saveData();
+		db.saveData();
 		// email everybody
 		users.forEach(function(user) {
 			var match = getUserByID(user.match);
+			logger.info('Attempting to email '+match);
 			var msg = 	'<h2>Congratulations! You have been matched!</h2>';
 			msg +=		'<p>You have been matched with <strong>'+match.displayName+'</strong></p>';
-			msg += 		'<p>Head over to <a href="http://home.andrewdaniel.co.uk/santa">the Secret Santa site</a>';
+			msg += 		'<p>Head over to <a href="http://santa.andrewdaniel.co.uk">the Secret Santa site</a>';
 			msg +=		' to see what they have asked for!</a>';
 			sendMail(user.email, 'You have a new match!', msg);
 		});
 
 		return returnBody(true, 'Matching complete with '+shuffleIts+' shuffles and '+iterations+' iterations');
 	} else {
-		return matchBody;
+		return returnBody(false, 'Matching exceeded 10 attempts!');;
 	}
 }
 
 function clearMatches() {
-	for(var i = 0; i < userData.length; i++) {
-		delete userData[i].match;
+	logger.info('Attempting to clear matches');
+	for(var i = 0; i < db.userData.length; i++) {
+		delete db.userData[i].match;
 	}
-	saveData();
+	db.saveData();
 	return returnBody(true, 'All matches cleared');
 }
 
-function saveData() {
-	winston.info('Saving data...')
-	fs.writeFile(fileName, JSON.stringify(userData), 'utf8', function (err) {
-		if (err) return console.error(err);
-		winston.info('Saving successful!');
-	});
-}
-
 function isAdminUser(user) {
-	return user && _.find(userData, { id: user.id, admin: true });
+	return user && _.find(db.userData, { id: user.id, admin: true });
 }
 
 function returnBody(success, msg) {
+	logger.info('Sending return message '+msg);
 	return {
 		success: success,
 		message: msg
@@ -264,10 +251,10 @@ function returnBody(success, msg) {
 
 function sendMail(to, subject, message) {
 	if (!isEmail(to)) {
-		winston.info(to+' is not an email, not sending one');
+		logger.info(to+' is not an email, not sending one');
 		return;
 	}
-	winston.info({ to: to }, 'Sending an email');
+	logger.info({ to: to }, 'Sending an email');
 	var mailOptions = {
 		from: '"🎅🏻 Secret Santa" <santa@andrewdaniel.co.uk>',
 		to: to,
@@ -278,9 +265,9 @@ function sendMail(to, subject, message) {
 	// send mail with defined transport object 
 	transporter.sendMail(mailOptions, function (error, info) {
 		if (error) {
-			return winston.info(error);
+			return logger.info(error);
 		}
-		winston.info({ response: info.response }, 'Message sent!');
+		logger.info({ response: info.response }, 'Message sent!');
 	});
 }
 
@@ -292,8 +279,6 @@ module.exports = {
 	getAllUsers: getAllUsers,
 	setUserPrefs: setUserPrefs,
 	setUserEmail: setUserEmail,
-	init: init,
 	matchUsers: matchUsers,
-	saveData: saveData,
 	isAdminUser: isAdminUser
 };
