@@ -8,6 +8,8 @@ if (process.env.OPENSHIFT_DATA_DIR) {
     logFilePath = path.join(process.env.OPENSHIFT_DATA_DIR, 'santa.log');
 }
 
+winston.emitErrs = true;
+
 winston.add(winstonRotate.Rotate, {
     file: logFilePath,
     colorize: false,
