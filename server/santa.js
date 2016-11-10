@@ -138,6 +138,4 @@ app.get('/admin/log', function (req, res) {
 	}
 });
 
-lib.init();
-
 module.exports = app;
