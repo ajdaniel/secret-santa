@@ -68,7 +68,8 @@ function getAllUsers() {
 			displayName: user.displayName,
 			email: user.email,
 			isAllowed: user.allowed,
-			match: user.match
+			match: user.match,
+			preferences: user.preferences
 		};
 	});
 }
@@ -89,8 +90,12 @@ function setUserPrefs(id, prefs) {
 	var user = _.find(userData, { id: id });
 	winston.info({id:id, prefs:prefs}, 'Updating user prefs');
 	if (user) {
-		user.preferences = _.merge(user.preferences, prefs);
-		user.preferences.lastUpdated = _.now();
+		user.preferences = {
+			likes: prefs.likes,
+			dislikes: prefs.dislikes,
+			wishlist: prefs.wishlist,
+			lastUpdated: _.now()
+		}
 		winston.info({ userData: user }, 'User updated preferences');
 		saveData();
 
@@ -114,8 +119,9 @@ function setUserPrefs(id, prefs) {
 		}
 
 		return returnBody(true, 'Preferences successfully updated');
+	} else {
+		return returnBody(false, 'User doesn\'t exist');
 	}
-	return returnBody(false, 'User doesn\'t exist');
 }
 
 function isEmail(text) {
