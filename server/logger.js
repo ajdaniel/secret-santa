@@ -21,4 +21,6 @@ winston.add(winstonRotate.Rotate, {
 
 winston.info('Logs output to '+logFilePath);
 
+winston.__filePath = logFilePath;
+
 module.exports = winston;

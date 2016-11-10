@@ -5,6 +5,7 @@ var fs = require('fs');
 var _ = require('lodash');
 var lib = require('./lib');
 var path = require('path');
+var logger = require('./logger');
 
 var callback = 'http://santa.andrewdaniel.co.uk/api/login/return';
 
@@ -131,7 +132,7 @@ app.post('/admin/actions', function (req, res) {
 
 app.get('/admin/log', function (req, res) {
 	if (lib.isAdminUser(req.user)) {
-		res.sendFile(path.join(__dirname, '../santa.log'));
+		res.sendFile(logger.__filePath);
 		
 	} else {
 		res.sendStatus(401);
