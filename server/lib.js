@@ -104,7 +104,7 @@ function setUserPrefs(id, prefs) {
 					if (santa) {
 						sendMail(santa.email, 'Your match updated their profile!',
 							'<h2>Your match updated their preferences!</h2> \
-							<p>Go visit <a href="http://home.andrewdaniel.co.uk/santa">the Secret Santa site</a> to see what they wrote</p>');
+							<p>Go visit <a href="http://santa.andrewdaniel.co.uk">the Secret Santa site</a> to see what they wrote</p>');
 						delete updateMails[user.id];
 					}
 				};
@@ -217,7 +217,7 @@ function matchUsers() {
 			logger.info('Attempting to email '+match);
 			var msg = 	'<h2>Congratulations! You have been matched!</h2>';
 			msg +=		'<p>You have been matched with <strong>'+match.displayName+'</strong></p>';
-			msg += 		'<p>Head over to <a href="http://home.andrewdaniel.co.uk/santa">the Secret Santa site</a>';
+			msg += 		'<p>Head over to <a href="http://santa.andrewdaniel.co.uk">the Secret Santa site</a>';
 			msg +=		' to see what they have asked for!</a>';
 			sendMail(user.email, 'You have a new match!', msg);
 		});
