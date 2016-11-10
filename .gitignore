@@ -1,2 +1,5 @@
 node_modules
 santa.log
+santaREST.log
+/data/
+npm-debug.log
