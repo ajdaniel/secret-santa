@@ -154,7 +154,7 @@ function matchUsers() {
 		// Get a subset of users and shuffle them
 		users = _.filter(db.userData, { allowed: true });
 
-		logger.log(users.length + ' users to match up');
+		logger.info(users.length + ' users to match up');
 
 		// _.shuffle is deterministic, so randomly iterate
 		shuffleIts = _.random(12, 300);
@@ -195,7 +195,7 @@ function matchUsers() {
 					return attemptMatch();
 				} else {
 					// bomb out, too many attempts
-					logger.log(shuffledUsers,'Couldnt match '+user.displayName+' with anyone!');
+					logger.info(shuffledUsers,'Couldnt match '+user.displayName+' with anyone!');
 					return false;
 				}
 			}
