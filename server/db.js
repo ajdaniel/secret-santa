@@ -37,11 +37,11 @@ fs.readFile(fileName, {encoding: 'utf8'}, function (err, data) {
 });
 
 db.saveData = function() {
-	logger.info('Saving data');
-	fs.writeFile(fileName, JSON.stringify(db.userData), 'utf8', function (err) {
-		if (err) return logger.info(err, 'failed to save data');
-		logger.info('Saving successful!');
-	});
+    logger.info('Saving data');
+    fs.writeFile(fileName, JSON.stringify(db.userData), 'utf8', function (err) {
+        if (err) return logger.info(err, 'failed to save data');
+        logger.info('Saving successful!');
+    });
 };
 
 module.exports = db;

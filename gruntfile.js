@@ -5,6 +5,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-ng-annotate');
     grunt.loadNpmTasks('grunt-karma');
+    grunt.loadNpmTasks('grunt-eslint');
 
     // configure the libraries
     grunt.initConfig({
@@ -40,6 +41,10 @@ module.exports = function (grunt) {
             santa : {
                 configFile: 'karma.santa.conf.js'
             }
+        },
+
+        eslint: {
+            js : ['server/**/*.js', 'public/*.js']
         }
     });
 
