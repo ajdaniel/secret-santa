@@ -2,7 +2,10 @@
   "name": "secret-santa",
   "version": "1.0.0",
   "description": "A secret santa website",
-  "main": "server/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ajdaniel/secret-santa.git"
+  },
   "dependencies": {
     "body-parser": "^1.15.2",
     "cookie-parser": "^1.4.3",

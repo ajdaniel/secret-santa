@@ -1,0 +1,10 @@
+language: node_js
+node_js:
+- '6'
+deploy:
+  provider: openshift
+  user: $OPENSHIFT_USER
+  password:
+    secure: $OPENSHIFT_PASS
+  app: secret-santa
+  domain: $OPENSHIFT_DOMAIN
