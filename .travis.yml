@@ -8,3 +8,4 @@ deploy:
     secure: $OPENSHIFT_PASS
   app: secret-santa
   domain: $OPENSHIFT_DOMAIN
+  deployment_branch: master
