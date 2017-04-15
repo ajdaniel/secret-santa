@@ -1,0 +1,16 @@
+{
+  "extends": ["eslint:recommended"],
+  "parserOptions": {
+      "ecmaVersion": 5
+  },
+  "env": {
+      "browser": true,
+      "node": true
+  },
+  "globals": {
+      "angular": true
+  },
+  "rules": {
+      "indent": ["error", 4]
+  }
+}

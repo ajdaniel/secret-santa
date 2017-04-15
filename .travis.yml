@@ -4,8 +4,7 @@ node_js:
 deploy:
   provider: openshift
   user: $OPENSHIFT_USER
-  password:
-    secure: $OPENSHIFT_PASS
+  password: $OPENSHIFT_PASS
   app: secret-santa
   domain: $OPENSHIFT_DOMAIN
   deployment_branch: master
