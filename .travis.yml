@@ -5,6 +5,6 @@ deploy:
   provider: openshift
   user: $OPENSHIFT_USER
   password: $OPENSHIFT_PASS
-  app: secret-santa
+  app: santa
   domain: $OPENSHIFT_DOMAIN
   deployment_branch: master
