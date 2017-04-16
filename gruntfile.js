@@ -48,7 +48,7 @@ module.exports = function (grunt) {
         }
     });
 
-    grunt.registerTask('default', ['ngAnnotate', 'concat:prod', 'uglify:prod']);
+    grunt.registerTask('default', ['eslint', 'ngAnnotate', 'concat:prod', 'uglify:prod']);
 
     grunt.registerTask('test', ['karma:santa']);
 };
